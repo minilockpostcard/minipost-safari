@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Author</key>
+	<string>undefined</string>
+	<key>Builder Version</key>
+	<string>9537.85.10.17.1</string>
+	<key>CFBundleDisplayName</key>
+	<string>miniLock Postcard</string>
+	<key>CFBundleIdentifier</key>
+	<string>link.minipost</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>Chrome</key>
+	<dict>
+		<key>Database Quota</key>
+		<real>1048576</real>
+		<key>Global Page</key>
+		<string>safari.global.html</string>
+		<key>Toolbar Items</key>
+		<array>
+			<dict>
+				<key>Identifier</key>
+				<string>minipostWasLaunched</string>
+				<key>Image</key>
+				<string>safari.toolbar.button.png</string>
+				<key>Label</key>
+				<string>Postcard</string>
+				<key>Tool Tip</key>
+				<string>miniLock Postcard</string>
+			</dict>
+		</array>
+	</dict>
+	<key>Content</key>
+	<dict>
+		<key>Scripts</key>
+		<dict/>
+	</dict>
+	<key>Description</key>
+	<string>Playful miniLock encryption designed for people without personal computers.</string>
+	<key>DeveloperIdentifier</key>
+	<string>F6BHXZ35NF</string>
+	<key>ExtensionInfoDictionaryVersion</key>
+	<string>1.0</string>
+	<key>Permissions</key>
+	<dict>
+		<key>Website Access</key>
+		<dict/>
+	</dict>
+	<key>Website</key>
+	<string>https://minipost.link</string>
+</dict>
+</plist>

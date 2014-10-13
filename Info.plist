@@ -18,8 +18,6 @@
 	<string>1</string>
 	<key>Chrome</key>
 	<dict>
-		<key>Database Quota</key>
-		<real>1048576</real>
 		<key>Global Page</key>
 		<string>safari.global.html</string>
 		<key>Toolbar Items</key>
@@ -30,7 +28,7 @@
 				<key>Image</key>
 				<string>safari.toolbar.button.16.png</string>
 				<key>Label</key>
-				<string>Postcard</string>
+				<string>miniLock Postcard</string>
 				<key>Tool Tip</key>
 				<string>miniLock Postcard</string>
 			</dict>
@@ -52,6 +50,8 @@
 		<key>Website Access</key>
 		<dict/>
 	</dict>
+	<key>Update Manifest URL</key>
+	<string>https://raw.githubusercontent.com/minipostlink/minipost.safariextension/master/UpdateManifest.plist</string>
 	<key>Website</key>
 	<string>https://minipost.link</string>
 </dict>

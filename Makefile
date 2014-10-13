@@ -1,8 +1,8 @@
 default: bundle
 
 update:
-	git --work-tree=minipost --git-dir=minipost/.git pull
-	git --work-tree=minipost --git-dir=minipost/.git reset --hard origin/deploy
+	cd minipost; git pull;
+	cd minipost; git reset --hard origin/deploy;
 
 bundle: bundle/safari.global.html bundle/safari.global.js bundle/miniLockLib.js bundle/minipost.js bundle/examples bundle/certificates
 	ditto minipost/index.html bundle/index.html

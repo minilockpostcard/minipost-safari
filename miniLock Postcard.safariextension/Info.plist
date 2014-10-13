@@ -51,7 +51,7 @@
 		<dict/>
 	</dict>
 	<key>Update Manifest URL</key>
-	<string>https://raw.githubusercontent.com/minipostlink/minipost.safariextension/master/UpdateManifest.plist</string>
+	<string>https://raw.githubusercontent.com/minipostlink/minipost-safari/master/UpdateManifest.plist</string>
 	<key>Website</key>
 	<string>https://minipost.link</string>
 </dict>

@@ -1,12 +1,11 @@
 default: bundle
 
-update:
-	cd minipost; git pull;
-	cd minipost; git reset --hard origin/deploy;
+bundle: bundle/safari.global.html bundle/safari.global.js bundle/unlock.html bundle/write.html bundle/miniLockLib.js bundle/minipost.js
 
-bundle: bundle/safari.global.html bundle/safari.global.js bundle/miniLockLib.js bundle/minipost.js bundle/examples bundle/certificates
-	ditto minipost/index.html bundle/index.html
+bundle/unlock.html: minipost
 	ditto minipost/unlock.html bundle/unlock.html
+
+bundle/write.html: minipost
 	ditto minipost/write.html bundle/write.html
 
 bundle/safari.global.html:
@@ -21,19 +20,11 @@ bundle/miniLockLib.js: minipost
 bundle/minipost.js: minipost
 	ditto minipost/minipost.js bundle/minipost.js
 
-bundle/examples: minipost
-	ditto minipost/examples bundle/examples
-
-bundle/certificates: minipost
-	ditto minipost/certificates bundle/certificates
-
 minipost:
 	git clone git@github.com:minipostlink/minipost.git
 	cd minipost; git reset --hard origin/deploy;
 
 clean:
 	rm -rf minipost
-	rm -rf bundle/examples
-	rm -rf bundle/certificates
 	rm -f bundle/*.html
 	rm -f bundle/*.js

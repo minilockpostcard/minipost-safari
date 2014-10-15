@@ -2741,7 +2741,6 @@ window.$ === undefined && (window.$ = Zepto)
     return value;
   };
 
-  // Predicate-generating functions. Often useful outside of Underscore.
   _.constant = function(value) {
     return function() {
       return value;
@@ -4624,15 +4623,14 @@ Function.delay = function(amount, f) {
 
 window.minipost = {
   hostname: location.hostname === "minipost.dev" ? "minipost.link" : location.hostname,
-  HTMLsuffix: (_ref = location.hostname) === "minipost.link" || _ref === "auto.minipost.link" || _ref === "minipostlink.github.io" ? "" : ".html"
+  pageSuffix: (_ref = location.hostname) === "minipost.link" || _ref === "auto.minipost.link" || _ref === "minipostlink.github.io" ? "" : ".html"
 };
 
 $(document).ready(function() {
   var available, container, id, monospaceWidth, name, tests, typefaceIsAvailable, typefaces, _i, _len, _ref1;
   typefaces = {
     avenir: "AvenirNext-DemiBold",
-    corbel: "Corbel",
-    optima: "Optima"
+    corbel: "Corbel"
   };
   available = [];
   tests = ["<a id=\"monospace\" style=\"font: 100px/1 monospace; display:inline-block;\">ii</a>"];
@@ -4658,9 +4656,11 @@ $(document).ready(function() {
 
 $(document).ready(function() {
   minipost.router = new MinipostRouter;
-  return Backbone.history.start({
-    pushState: true
-  });
+  if (location.protocol !== "chrome-extension:") {
+    return Backbone.history.start({
+      pushState: true
+    });
+  }
 });
 
 MinipostRouter = (function(_super) {
@@ -4701,38 +4701,48 @@ MinipostRouter = (function(_super) {
     ":bundle/unlock.html": "unlockPostcard"
   };
 
-  MinipostRouter.prototype.showIndex = function() {
+  MinipostRouter.prototype.showIndex = function(params) {
     var _ref1;
-    console.info("showIndex");
+    console.info("Open Index", params);
     if ((_ref1 = this.currentView) != null) {
       _ref1.remove();
     }
-    return this.currentView = new IndexPageView(this.params());
+    return this.currentView = new IndexPageView(params);
   };
 
-  MinipostRouter.prototype.writePostcard = function() {
+  MinipostRouter.prototype.writePostcard = function(params) {
     var _ref1;
-    console.info("writePostcard");
+    console.info("Write Postcard", params);
     if ((_ref1 = this.currentView) != null) {
       _ref1.remove();
     }
-    return this.currentView = new WritePostcardView(this.params());
+    return this.currentView = new WritePostcardView(params);
   };
 
-  MinipostRouter.prototype.unlockPostcard = function() {
+  MinipostRouter.prototype.unlockPostcard = function(params) {
     var _ref1;
-    console.info("unlockPostcard");
+    console.info("Unlock Postcard", params);
     if ((_ref1 = this.currentView) != null) {
       _ref1.remove();
     }
-    return this.currentView = new UnlockPostcardView(this.params());
+    return this.currentView = new UnlockPostcardView(params);
   };
 
-  MinipostRouter.prototype.params = function() {
+  MinipostRouter.prototype.execute = function(callback, args) {
+    console.info("execute", args);
+    if (callback) {
+      return callback.call(this, this.params());
+    }
+  };
+
+  MinipostRouter.prototype.params = function(url) {
     var name, pair, params, value, _i, _len, _ref1, _ref2;
+    if (url == null) {
+      url = window.location;
+    }
     params = {};
-    if (location.search) {
-      _ref1 = location.search.replace("?", "").split("&");
+    if (url.search) {
+      _ref1 = url.search.replace("?", "").split("&");
       for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
         pair = _ref1[_i];
         _ref2 = pair.split("="), name = _ref2[0], value = _ref2[1];
@@ -4772,19 +4782,33 @@ $(document).ready(function() {
 });
 
 $(document).on("click", "a[href]", function(event) {
-  var destination, hrefAttribute;
+  var destination, hrefAttribute, method, router;
+  hrefAttribute = event.currentTarget.getAttribute("href");
+  if (hrefAttribute[0] !== "/") {
+    return;
+  }
   if (event.metaKey === true) {
     return;
   }
-  hrefAttribute = event.currentTarget.getAttribute("href");
+  event.preventDefault();
   destination = new URL(event.currentTarget.href);
-  if (destination.hostname === location.hostname) {
-    if (hrefAttribute[0] === "/") {
-      Backbone.history.navigate(hrefAttribute, {
-        trigger: true
-      });
-      return event.preventDefault();
-    }
+  if (location.protocol === "chrome-extension:") {
+    router = minipost.router;
+    method = (function() {
+      switch (false) {
+        case !destination.pathname.match("write"):
+          return "writePostcard";
+        case !destination.pathname.match("unlock"):
+          return "unlockPostcard";
+        default:
+          return "showIndex";
+      }
+    })();
+    return router[method](router.params(destination));
+  } else {
+    return Backbone.history.navigate(hrefAttribute, {
+      trigger: true
+    });
   }
 });
 
@@ -4932,7 +4956,7 @@ Postcard = (function(_super) {
     if (options == null) {
       options = {};
     }
-    return "/unlock" + minipost.HTMLsuffix + "?Base58=" + (this.get("Base58"));
+    return "/unlock" + minipost.pageSuffix + "?Base58=" + (this.get("Base58"));
   };
 
   Postcard.prototype.validate = function(attributes) {
@@ -5182,7 +5206,7 @@ Shortcut = (function(_super) {
     if (options == null) {
       options = {};
     }
-    return "/unlock" + minipost.HTMLsuffix + "?Base58=" + (this.get("Base58"));
+    return "/unlock" + minipost.pageSuffix + "?Base58=" + (this.get("Base58"));
   };
 
   return Shortcut;
@@ -5192,8 +5216,6 @@ Shortcut = (function(_super) {
 
 
 },{}],5:[function(require,module,exports){
-exports.fileExtension = location.hostname === "minipost.dev" ? ".html" : "";
-
 exports.stamps = require("./HTML.stamps.coffee");
 
 exports.stamp = function(name, attributes) {
@@ -5223,7 +5245,7 @@ exports.a = function(text, attributes) {
   }
   if (attributes.href) {
     if (attributes.href[0] === "/") {
-      attributes.href = attributes.href.indexOf("?") !== -1 ? attributes.href.replace("?", "" + this.fileExtension + "?") : attributes.href + this.fileExtension;
+      attributes.href = attributes.href.indexOf("?") !== -1 ? attributes.href.replace("?", "" + minipost.pageSuffix + "?") : attributes.href + minipost.pageSuffix;
     }
     attributes.href = encodeURI(attributes.href);
   }
@@ -5414,17 +5436,17 @@ IndexPageView = (function(_super) {
     document.querySelector("title").innerText = "miniLock Postcard Home";
     document.querySelector("body > h1").innerText = "Home";
     document.querySelector("body").style.backgroundColor = "";
-    return this.el.innerHTML = "<header>\n  " + (HTML.stamp("rainbow-pink")) + "<b>miniLock</b> <b>Postcard</b>\n</header>\n<p>\n  This is " + minipost.hostname + "<br>\n  <br>\n  Everything we need to make and unlock postcards has loaded.<br>\n  <br>\n  " + (navigator.onLine ? "You can disconnect your network and continue your session offline if your soul has paranormal desires." : 'And now we are offline where the air is fresh and the noise is pink.') + "\n  <br>\n  <br>\n  " + (HTML.a("Make a postcard for your postie", {
+    return this.el.innerHTML = "<header>\n  " + (HTML.stamp("rainbow-pink")) + "<b>miniLock</b> <b>Postcard</b>\n</header>\n<p>\n  This is " + minipost.hostname + "<br>\n  <br>\n  Everything we need to make and unlock postcards has loaded.<br>\n  <br>\n  " + (navigator.onLine ? "You can disconnect your network and continue your session offline if your soul has paranormal desires." : 'And now we are offline where the air is fresh and the noise is pink.') + "\n  <br>\n  <br>\n  " + (HTML.a("Make a miniLock postcard for your postie", {
       href: "/write"
     })) + "<br>\n  <br>\n  " + (HTML.a("Unlock a postcard code or file", {
       href: "/unlock"
-    })) + "<br>\n</p>\n<br>\n<br>\n<div class=\"examples\">\n  <h2>Examples</h2>\n  <div class=\"example\">\n    " + (HTML.a("Make a postcard for Alice", {
+    })) + "<br>\n</p>\n\n<div class=\"examples\">\n  <h2>Examples</h2>\n  <div class=\"example\">\n    " + (HTML.a("Make a postcard for Alice", {
       href: "/write?mailto=alice@example.org&amp;hue=60&amp;miniLockID=zDRLdbPFEb95Q7xzTuiHr24qUSpearDoB5c9DS1To93cZ"
     })) + "\n    <p>It’s only an example.<br>&amp; she probably won’t respond.</p>\n    <img alt=\"Writing a postcard for Alice.\" src=\"examples/Write a postcard to Alice.png\">\n  </div>\n  <div class=\"example\">\n    " + (HTML.a("Unlock a postcard addressed to Bobby", {
       href: "/unlock?address=bobby@example.org&amp;Base58=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"
     })) + "\n    <p>His secret phrase is:<br><em class=\"copy_n_paste\">" + minipost.Bobby.secretPhrase + "</em></p>\n    <img alt=\"Unlocking Bobby’s postcard.\" src=\"examples/Unlock a postcard for Bobby.png\">\n  </div>\n  <div class=\"example\">\n    " + (HTML.a("Post a question to the author", {
       href: "/write?mailto=undefined@minipost.link&amp;hue=300&amp;miniLockID=29FnzFiUxGd6z8bveWWXZFhcaU5zNCkUgdnrz72SoAcsPc&amp;text=Hello!\n\nI have a question about miniLock Postcard.\n\n"
-    })) + "\n    <p>The author of this site is <a tabindex=\"-1\" href=\"https://45678.github.io/\">undefined</a>.<br>Send them a message if you please.</p>\n    <img alt=\"Posting a question to the author.\" src=\"examples/Post a question.png\">\n  </div>\n</div>\n<br>\n<br>\n<div class=\"hosts\">\n  <h2>Hosts</h2>\n  <div class=\"easy\">\n    <a tabindex=\"-1\" href=\"https://minipost.link\">minipost.link</a><br>\n    <p>\n      <a href=\"https://www.ssllabs.com/ssltest/analyze.html?d=minipost.link\">Easy TLS connection with strong forward secure ciphers</a>.<br>\n      <a tabindex=\"-1\" href=\"" + location.protocol + "//" + location.hostname + "/certificates/minipost.link.crt\">Get X.509 Certificate</a>.\n      <a tabindex=\"-1\" href=\"https://github.com/minipostlink/minipost/tree/deploy\">Review the source code</a>.<br>\n      Hosted by <a tabindex=\"-1\" href=\"https://45678.github.io/\">undefined</a> in Singapore.<br>\n    </p>\n  </div>\n  <br>\n  <div class=\"autonomous\">\n    <a tabindex=\"-1\" href=\"https://auto.minipost.link\">auto.minipost.link</a><br>\n    <p>\n      <a href=\"https://www.ssllabs.com/ssltest/analyze.html?d=auto.minipost.link\">Autonomous TLS connection with strong forward secure ciphers</a>.<br>\n      <a tabindex=\"-1\" href=\"" + location.protocol + "//" + location.hostname + "/certificates/auto.minipost.link.crt\">Get X.509 Certificate</a>.\n      <a tabindex=\"-1\" href=\"https://github.com/minipostlink/minipost/tree/deploy\">Review the source code</a>.<br>\n      Hosted by <a tabindex=\"-1\" href=\"https://45678.github.io/\">undefined</a> in New York City.<br>\n    </p>\n  </div>\n  <br>\n  <div class=\"github\">\n    <a tabindex=\"-1\" href=\"https://minipostlink.github.io\">minipostlink.github.io</a><br>\n    <p>\n      <a href=\"https://www.ssllabs.com/ssltest/analyze.html?d=minipostlink.github.io\">Easy TLS connection with good forward secure ciphers</a><br>\n      &amp; <a tabindex=\"-1\" href=\"https://github.com/minipostlink/minipostlink.github.io/tree/master\">an authentic view of the source code</a>.<br>\n      Hosted by <a tabindex=\"-1\" href=\"https://github.com/\">Github</a> somewhere in the USA.\n    </p>\n  </div>\n</div>";
+    })) + "\n    <p>The author of this site is <a tabindex=\"-1\" href=\"https://45678.github.io/\">undefined</a>.<br>Send them a message if you please.</p>\n    <img alt=\"Posting a question to the author.\" src=\"examples/Post a question.png\">\n  </div>\n</div>\n\n<div class=\"downloads\" style=\"" + (location.protocol === "chrome-extension:" ? "display:none;" : "") + "\">\n  <h2>Downloads</h2>\n  <div class=\"safari\">\n    Get miniLock Postcard for Apple Safari<br>\n    <p>\n      This extension adds a miniLock Postcard button to your toolbar for quick access to the write and unlock screens.\n      Works without a network connection.\n    </p>\n    <p>\n      <a href=\"https://github.com/minipostlink/minipost-safari/\">Review the source code for this extension</a>.\n    </p>\n    <p>\n      <em>Setup Instructions</em>:\n    </p>\n    <ol>\n      <li><a href=\"https://github.com/minipostlink/minipost-safari/raw/master/miniLock%20Postcard.safariextz\">Download <em>miniLock Postcard.safariextz</em></a> and save it on your computer.</li>\n      <li>Double-click the <em>miniLock Postcard.safariextz</em> file to open it with Safari.</li>\n      <li>Review the dialog that appears, and if you would like to proceed, click <em>Install</em>.\n      <li>\n        Click <img alt=\"the miniLock Postcard button\" src=\"downloads/Safari toolbar button.png\"> in the Safari toolbar to begin writing a postcard.\n        Click it again to unlock a postcard code or file.\n      </li>\n    </ol>\n    <img alt=\"miniLock Postcard button in Safari toolbar\" src=\"downloads/Safari + miniLock Postcard.png\">\n  </div>\n  <div class=\"chrome\">\n    Get miniLock Postcard for Google Chrome<br>\n    <p>\n      This app appears in your Chrome Apps folder and launcher after you install it.\n      Make and unlock postcards with ease; works without a network connection.\n    </p>\n    <p>\n      <a href=\"https://github.com/minipostlink/minipost-chrome/\">Review the source code for this app</a>.\n    </p>\n    <p>\n      <em>Setup Instructions</em>:\n    </p>\n    <ol>\n      <li><a href=\"https://github.com/minipostlink/minipost-chrome/raw/master/miniLock%20Postcard.crx\">Download <em>miniLock Postcard.crx</em></a> and save it to your computer.</li>\n      <li>Click the Chrome menu icon <img src=\"downloads/Chrome menu button.png\" alt=\"Chrome menu\" title=\"Chrome menu\"> on the browser toolbar.</li>\n      <li>Select <em>More Tools</em> &gt; <em>Extensions</em>.</li>\n      <li>Locate the <em>miniLock Postcard.crx</em> file on your computer and drag it onto the Extensions page.</li>\n      <li>Review the dialog that appears, and if you would like to proceed, click <em>Install</em>.\n    </ol>\n    <img alt=\"Google Chrome + miniLock Postcard\" src=\"downloads/Chrome + miniLock Postcard.png\">\n  </div>\n</div>\n\n<div class=\"hosts\">\n  <h2>Hosts</h2>\n  <div class=\"easy\">\n    <a tabindex=\"-1\" href=\"https://minipost.link\">minipost.link</a><br>\n    <p>\n      <a href=\"https://www.ssllabs.com/ssltest/analyze.html?d=minipost.link\">Easy TLS connection with strong forward secure ciphers</a>.<br>\n      <a tabindex=\"-1\" href=\"" + location.protocol + "//" + location.hostname + "/certificates/minipost.link.crt\">Get X.509 Certificate</a>.\n      <a tabindex=\"-1\" href=\"https://github.com/minipostlink/minipost/tree/deploy\">Review the source code</a>.<br>\n      Hosted by <a tabindex=\"-1\" href=\"https://45678.github.io/\">undefined</a> in Singapore.<br>\n    </p>\n  </div>\n  <br>\n  <div class=\"autonomous\">\n    <a tabindex=\"-1\" href=\"https://auto.minipost.link\">auto.minipost.link</a><br>\n    <p>\n      <a href=\"https://www.ssllabs.com/ssltest/analyze.html?d=auto.minipost.link\">Autonomous TLS connection with strong forward secure ciphers</a>.<br>\n      <a tabindex=\"-1\" href=\"" + location.protocol + "//" + location.hostname + "/certificates/auto.minipost.link.crt\">Get X.509 Certificate</a>.\n      <a tabindex=\"-1\" href=\"https://github.com/minipostlink/minipost/tree/deploy\">Review the source code</a>.<br>\n      Hosted by <a tabindex=\"-1\" href=\"https://45678.github.io/\">undefined</a> in New York City.<br>\n    </p>\n  </div>\n  <br>\n  <div class=\"github\">\n    <a tabindex=\"-1\" href=\"https://minipostlink.github.io\">minipostlink.github.io</a><br>\n    <p>\n      <a href=\"https://www.ssllabs.com/ssltest/analyze.html?d=minipostlink.github.io\">Easy TLS connection with good forward secure ciphers</a><br>\n      &amp; <a tabindex=\"-1\" href=\"https://github.com/minipostlink/minipostlink.github.io/tree/master\">an authentic view of the source code</a>.<br>\n      Hosted by <a tabindex=\"-1\" href=\"https://github.com/\">Github</a> somewhere in the USA.\n    </p>\n  </div>\n</div>";
   };
 
   return IndexPageView;
@@ -6007,7 +6029,7 @@ UnlockPostcardView = (function(_super) {
 
   UnlockPostcardView.prototype.renderBodyBackgroundColor = function() {
     var color;
-    color = this.postcard.get("hue") ? "hsl(" + (this.postcard.get("hue")) + ", 66%, 66%);" : "";
+    color = this.postcard.get("hue") ? "hsl(" + (this.postcard.get("hue")) + ", 66%, 66%);" : "hsl(260, 8%, 50%);";
     return $(document.body).css({
       "background-color": color
     });
@@ -6049,7 +6071,7 @@ UnlockPostcardView = (function(_super) {
       name: "miniLockID",
       tabindex: "-1",
       readonly: "yes"
-    })) + "\n      </div>\n      <div class=\"public key\">\n        <h2>Public Key</h2>\n        <div>" + (HTML.renderByteStream((_ref = this.identity.publicKey()) != null ? _ref : new Uint8Array(32))) + "</div>\n      </div>\n    </div>\n    <br>\n    <button class=\"unlock\">Unlock Postcard</button><button class=\"lock\">Lock Postcard</button>\n  <div>\n</article>\n<div class=\"outputs_view\"></div>\n<nav style=\"display:" + (location.protocol.match("extension") ? "none" : "block") + ";\">\n  <h3>Site Map</h3>\n  <a tabindex=\"-1\" " + (location.pathname !== "/" ? 'href="/"' : void 0) + ">" + minipost.hostname + "</a><br>\n  <a tabindex=\"-1\" " + (location.pathname !== ("/write" + minipost.HTMLsuffix) ? 'href="' + ("/write" + minipost.HTMLsuffix) + '"' : void 0) + ">" + minipost.hostname + "/write</a><br>\n  <a tabindex=\"-1\" " + (location.pathname !== ("/unlock" + minipost.HTMLsuffix) ? 'href="' + ("/unlock" + minipost.HTMLsuffix) + '"' : void 0) + ">" + minipost.hostname + "/unlock</a><br>\n</nav>";
+    })) + "\n      </div>\n      <div class=\"public key\">\n        <h2>Public Key</h2>\n        <div>" + (HTML.renderByteStream((_ref = this.identity.publicKey()) != null ? _ref : new Uint8Array(32))) + "</div>\n      </div>\n    </div>\n    <br>\n    <button class=\"unlock\">Unlock Postcard</button><button class=\"lock\">Lock Postcard</button>\n  <div>\n</article>\n<div class=\"outputs_view\"></div>\n<nav style=\"display:" + (location.protocol.match("safariextension") ? "none" : "block") + ";\">\n  <h3>Site Map</h3>\n  <a tabindex=\"-1\" " + (location.pathname !== "/" ? 'href="/"' : void 0) + ">" + minipost.hostname + "</a><br>\n  <a tabindex=\"-1\" " + (location.pathname !== ("/write" + minipost.pageSuffix) ? 'href="' + ("/write" + minipost.pageSuffix) + '"' : void 0) + ">" + minipost.hostname + "/write</a><br>\n  <a tabindex=\"-1\" " + (location.pathname !== ("/unlock" + minipost.pageSuffix) ? 'href="' + ("/unlock" + minipost.pageSuffix) + '"' : void 0) + ">" + minipost.hostname + "/unlock</a><br>\n</nav>";
   };
 
   return UnlockPostcardView;
@@ -6250,7 +6272,7 @@ WritePostcardView = (function(_super) {
       id: "author_secret_phrase",
       name: "secret_phrase",
       placeholder: "Type your secret phrase…"
-    })) + "\n      </div>\n      <div class=\"identity\"></div>\n    </div>\n    <div class=\"key_pair operation progress_graphic\">\n      <div class=\"progress\"></div>\n    </div>\n    <div class=\"encrypt operation progress_graphic\">\n      <div class=\"progress\"></div>\n    </div>\n    <br>\n    <button class=\"commit\">Make Postcard</button>\n  </div>\n</article>\n<div class=\"outputs_view\"></div>\n<nav style=\"display:" + (location.protocol.match("extension") ? "none" : "block") + ";\">\n  <h3>Site Map</h3>\n  <a tabindex=\"-1\" " + (location.pathname !== "/" ? 'href="/"' : void 0) + ">" + minipost.hostname + "</a><br>\n  <a tabindex=\"-1\" " + (location.pathname !== ("/write" + minipost.HTMLsuffix) ? 'href="' + ("/write" + minipost.HTMLsuffix) + '"' : void 0) + ">" + minipost.hostname + "/write</a><br>\n  <a tabindex=\"-1\" " + (location.pathname !== ("/unlock" + minipost.HTMLsuffix) ? 'href="' + ("/unlock" + minipost.HTMLsuffix) + '"' : void 0) + ">" + minipost.hostname + "/unlock</a><br>\n</nav>";
+    })) + "\n      </div>\n      <div class=\"identity\"></div>\n    </div>\n    <div class=\"key_pair operation progress_graphic\">\n      <div class=\"progress\"></div>\n    </div>\n    <div class=\"encrypt operation progress_graphic\">\n      <div class=\"progress\"></div>\n    </div>\n    <br>\n    <button class=\"commit\">Make Postcard</button>\n  </div>\n</article>\n<div class=\"outputs_view\"></div>\n<nav style=\"display:" + (location.protocol.match("safariextension") ? "none" : "block") + ";\">\n  <h3>Site Map</h3>\n  <a tabindex=\"-1\" " + (location.pathname !== "/" ? 'href="/"' : void 0) + ">" + minipost.hostname + "</a><br>\n  <a tabindex=\"-1\" " + (location.pathname !== ("/write" + minipost.pageSuffix) ? 'href="' + ("/write" + minipost.pageSuffix) + '"' : void 0) + ">" + minipost.hostname + "/write</a><br>\n  <a tabindex=\"-1\" " + (location.pathname !== ("/unlock" + minipost.pageSuffix) ? 'href="' + ("/unlock" + minipost.pageSuffix) + '"' : void 0) + ">" + minipost.hostname + "/unlock</a><br>\n</nav>";
   };
 
   return WritePostcardView;

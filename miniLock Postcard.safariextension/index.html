@@ -1,12 +1,14 @@
 <!DOCTYPE HTML><meta charset="UTF-8">
 <title>miniLock Postcard</title>
+<meta name="viewport" content="width=1220">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACL0lEQVRYCe1WP2hTcRC+e75UsIiDoKCLIFhBKGj/JIUOhe6dHHxtfehUKE6iIJ26CXVwcFbapCZiN2eHDlITmlqwqHQT/LOItApWIenvvCiXd69y8aUZurwH4e6+u/t+37u8vBxAeh3wBHA/54/ArH86e+6K5+FlJLhEgCcBaZu5NsnBM7fjHhY3JraScLctYCK7mPM8f54be6wDCGgLHdzKV4JHVo3gbQmYzJXGPMSn3HxYCFpZcnS3UAlmWtUkFhAMFC/4h7CCiN0RIf0igiqTbDB2hj+DgHg8yrNH7lq+PL4Qw1SQWEA4VHoOgKPSS0TLNYDrT8rBe8Gu9ua76UjXnIcwLRgQff1Z+352aW3qWxNTTiIBYX/pImTwlfTxd7z+4eXm4DLM1gXTNsyVHvAkbgjGYm8WysF9ibX1dGD5zocxnXP13Snr8EYd7dTusPmiemL9CodEAhDwvGrafrw6WVXxP27hdfiDp7QiiT39Av+xiQTwb/yEdDHxW/ZJYsvy++FNlIv6I+yv5+8FJA76iuqu8ajg/CBm4rkooz1CONZ8wBDNGzUFZLq8d5pQfCYdsHJS0441lbVD0kltKiCdQDqBdALpBOwJEHzq5BWre3kh+ahj7ZsCCKnlf74m+a+PsGbV2ALqMMf7nLMaE+PMQQ0u4zIFLK4GK3z6TEci+PAGR4PLOB+aO4NVEGaLw7xg3ubKfl5GTll1cZw+885UZfH38pXxF/FcGsUn8BsTVaY4f4KXygAAAABJRU5ErkJggg==">
 <!-- Review source code at https://github.com/minipostlink/minipost/tree/deploy -->
 <script src="miniLockLib.js" charset="UTF-8"></script>
 <script src="minipost.js" charset="UTF-8"></script>
 <h1 aria-live="polite"></h1>
 <style>
-body, section, article, header, footer, nav, div, h1, h2, p, pre, ul, li, input, textarea, button { margin: 0; padding: 0; border: 0; }
-body, section, article, header, footer, nav, div, h1, h2, p, pre, ul, li { display: block; position: relative; box-sizing: border-box; }
+body, section, article, header, footer, nav, div, h1, h2, p, pre, ol, ul, li, input, textarea, button { margin: 0; padding: 0; border: 0; }
+body, section, article, header, footer, nav, div, h1, h2, p, pre, ol, ul, li { display: block; position: relative; box-sizing: border-box; }
 button, code, h1, h2, input, pre, textarea, var { font: inherit; }
 textarea, input[type=text], input[type=email], input[type=range] { width: 100%; }
 a, button { outline: none; }
@@ -15,7 +17,7 @@ a, button { outline: none; }
 /* Cursor */
 
 * { cursor: default; }
-a[href]:hover { cursor: pointer; }
+a[href]:hover, a[href]:hover * { cursor: pointer; }
 body { transition: background-color 333ms linear; padding: 10px; }
 
 body > h1 {
@@ -154,11 +156,13 @@ body.corbel .encrypt.operation,
 body.corbel #write_postcard_view div.mailto em,
 body.corbel #write_postcard_view div.text aside,
 body.corbel div.make_keys_view aside,
+body.corbel #index_page_view div.downloads p,
 body.corbel #index_page_view div.examples p,
 body.corbel #index_page_view div.hosts p,
 body.corbel #index_page_view > header p {
   font: italic 15px/20px "Corbel";
 }
+body.corbel .downloads em,
 body.corbel .examples p em,
 body.corbel .postcard header em,
 body.corbel .output p em {
@@ -197,11 +201,14 @@ body.avenir .encrypt.operation,
 body.avenir #write_postcard_view div.mailto em,
 body.avenir #write_postcard_view div.text aside,
 body.avenir div.make_keys_view aside,
+body.avenir #index_page_view div.downloads li,
+body.avenir #index_page_view div.downloads p,
 body.avenir #index_page_view div.examples p,
 body.avenir #index_page_view div.hosts p,
 body.avenir #index_page_view > header p {
   font: 15px/20px "AvenirNext-Italic";
 }
+body.avenir .downloads em,
 body.avenir .examples p em,
 body.avenir .postcard header em,
 body.avenir .output p em {
@@ -574,9 +581,26 @@ div.unavailable.output {
   -webkit-transform: rotate(-3deg);
 }
 
-#index_page_view > p {
-  margin-right: 40px;
+#index_page_view p {
+  margin: 10px 20px 0px 0;
   max-width: 600px;
+}
+#index_page_view p:first-of-type {
+  margin: 0px 20px 0px 0;
+}
+
+#index_page_view ol {
+  margin: 10px 0 0 0;
+  list-style-type: decimal;
+}
+#index_page_view ol li {
+  margin: 10px 0 0;
+  display: list-item;
+}
+#index_page_view ol li img {
+  height: 16px;
+  vertical-align: middle;
+  margin-bottom: 4px;
 }
 
 #index_page_view .hosts h2 {
@@ -584,14 +608,15 @@ div.unavailable.output {
   top: 0;
 }
 
-#index_page_view .examples h2,
-#index_page_view .hosts h2 {
-  margin-bottom: 20px;
+#index_page_view h2 {
+  margin: 60px 0 40px;
 }
+#index_page_view .downloads > div,
 #index_page_view .examples > div {
-  margin: 20px 0 0;
+  margin: 40px 0;
 }
-#index_page_view .examples img {
+#index_page_view .downloads div > img,
+#index_page_view .examples div > img {
   height: 60px;
   position: absolute;
   right: 100%;
@@ -599,6 +624,13 @@ div.unavailable.output {
   margin-right: 8px;
   box-shadow: 0px 0px 1px hsla(0, 0%, 0%, 0.5);
   cursor: pointer;
+}
+
+#index_page_view .downloads div > img {
+  cursor: default;
+}
+#index_page_view .downloads div > img[alt="Google Chrome + miniLock Postcard"] {
+  box-shadow: none;
 }
 #write_postcard_view {
   width: 1200px;
@@ -671,7 +703,7 @@ body {
 }
 
 body.ready {
-  background-color: hsl(260, 8%, 66%);
+  background-color: hsl(260, 8%, 75%);
 }
 
 .postcard {
@@ -688,7 +720,12 @@ a {
   color: inherit;
 }
 
+body.offline div.downloads img {
+  opacity: 0.15;
+}
+
 body.offline a[href^="http"],
+body.offline div.downloads,
 body.offline div.hosts,
 .undefined.identity,
 .undefined.identity .key h2,
@@ -707,6 +744,7 @@ div.progress_graphic div.progress {
 }
 
 /*.outputs_view a.rw.undefined var,*/
+#index_page_view h2,
 .postcard > header,
 .output > header,
 article.postcard.locked div.author,
